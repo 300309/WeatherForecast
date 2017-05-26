@@ -46,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     TextView maxTextView;
     TextView minTextView;
 
+    public static double myLat=0;
+    public static double myLng=0;
 
 
 
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
        // tempTextView.setText("25");
 
 
-        String url = "http://api.openweathermap.org/data/2.5/weather?q=Cyprus&appid=e2b7fc94c355709e226f0bd64b8a1a89";
+        String url = "http://api.openweathermap.org/data/2.5/weather?lat="+String.valueOf(myLat)+"&lon="+String.valueOf(myLng)+"&appid=e2b7fc94c355709e226f0bd64b8a1a89";
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {

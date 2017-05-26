@@ -1,12 +1,17 @@
 package com.coolstuff.my.weatherforecast;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -14,13 +19,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import static java.lang.String.valueOf;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener {
 
     private GoogleMap mMap;
-    Location myLocation;
     TextView textView;
+    Marker marker;
+    LatLng wantedLatlng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,26 +43,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        mapFragment = (SupportMapFragment) fragmentManager
-                 .findFragmentById(R.id.map);
-
-        //mMap = mapFragment.getMap();
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        mMap.setMyLocationEnabled(true);
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
-        mMap.setOnMapClickListener(this);
 
     }
 
@@ -72,16 +61,72 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(35.219182499999995, 33.4173471);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("CIU"));
-        mMap.animateCamera( CameraUpdateFactory.zoomTo( 21.0f ) );
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        myLocation(35.2218732,33.4170267, 15);
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                wantedLatlng = latLng;
+                myDialog();
+                //   Toast.makeText(
+                //          MainActivity.this,
+                //          "Lat " + latLng.latitude + " "
+                //                  + "Long " + latLng.longitude,
+                //
+            }
+        });
+    }
+
+    public void myLocation(double lat, double lng, float zoom) {
+        LatLng latLng = new LatLng(lat,lng);
+        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
+        mMap.moveCamera(update);
+
+
+        MarkerOptions options = new MarkerOptions()
+                .title(valueOf(latLng))
+                .position(new LatLng(lat,lng))
+                .draggable(true)
+                .snippet("Your favourite marker is here");
+        marker=mMap.addMarker(options);
+
     }
 
 
     @Override
     public void onMapClick(LatLng point) {
-        textView.setText(point.toString());
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(point));
+
+    }
+
+    public void myDialog(){
+        final Dialog showDialog = new Dialog(this);
+
+        showDialog.setTitle("Weather");
+        showDialog.setContentView(R.layout.dialog_layout);
+
+        Button nobtn = (Button)showDialog.findViewById(R.id.no);
+
+        nobtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialog.cancel();
+            }
+        });
+
+        Button yesbtn = (Button) showDialog.findViewById(R.id.yes);
+        yesbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+             //   MainActivity main = new MainActivity();
+                MainActivity.myLat=wantedLatlng.latitude;
+                MainActivity.myLng=wantedLatlng.longitude;
+
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        showDialog.show();
+
     }
 }
